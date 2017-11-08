@@ -1,6 +1,9 @@
 package com.robynsilber.weather_forecast.model;
 
-public class Weather {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Weather implements Parcelable {
 
     // Model data
 
@@ -21,6 +24,26 @@ public class Weather {
         this.mDescription = description;
         this.mIconUrl = "http://openweathermap.org/img/w/" + iconCode + ".png";;
     }
+
+    protected Weather(Parcel in) {
+        mDay = in.readString();
+        mTemperatureHi = in.readDouble();
+        mTemperatureLo = in.readDouble();
+        mDescription = in.readString();
+        mIconUrl = in.readString();
+    }
+
+    public static final Creator<Weather> CREATOR = new Creator<Weather>() {
+        @Override
+        public Weather createFromParcel(Parcel in) {
+            return new Weather(in);
+        }
+
+        @Override
+        public Weather[] newArray(int size) {
+            return new Weather[size];
+        }
+    };
 
     public String getDay(){
         return mDay;
@@ -65,5 +88,19 @@ public class Weather {
 
     public String toString(){
         return mDay + " | " + Double.toString(mTemperatureHi) + " / " + Double.toString(mTemperatureLo) + " : " + mDescription;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(mDay);
+        dest.writeDouble(mTemperatureHi);
+        dest.writeDouble(mTemperatureLo);
+        dest.writeString(mDescription);
+        dest.writeString(mIconUrl);
     }
 }

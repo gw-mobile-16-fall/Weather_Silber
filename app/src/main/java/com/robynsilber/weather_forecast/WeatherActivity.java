@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
@@ -71,7 +72,7 @@ public class WeatherActivity extends AppCompatActivity implements WeatherDataAsy
     private static Location mLocation;
     private double mLatitude = 0.0;
     private double mLongitude = 0.0;
-    private Weather[] mWeatherModel;
+    private Weather[] mWeatherModel = null;
     private WeatherDataAsyncTask mWeatherDataAsyncTask;
 
     // constants
@@ -81,21 +82,10 @@ public class WeatherActivity extends AppCompatActivity implements WeatherDataAsy
     private boolean isBoundToService = false;
 
     // Views
-//    private TextView mTemperatureLabel;
-//    private TextView mDayLabel;
-//    private TextView mWeatherDescrLabel;
-//    private ImageView mIconImageView;
     private TextView mForecastHeader;
     private ProgressBar mProgBarView;
     private TextView mEmptyList;
     private ListView mListView;
-    // Butterknife annotations
-//    @InjectView(R.id.dayLabel) TextView mDayLabel;
-//    @InjectView(R.id.temperatureLabel) TextView mTemperatureLabel;
-//    @InjectView(weatherDescrLabel) TextView mWeatherDescrLabel;
-//    @InjectView(R.id.iconImageView) ImageView mIconImageView;
-//    @InjectView(R.id.forecastHeader) TextView mForecastHeader;
-//    @InjectView(R.id.progressBar) ProgressBar mProgBarView;
 
 
 
@@ -121,22 +111,28 @@ public class WeatherActivity extends AppCompatActivity implements WeatherDataAsy
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather); // sets activity_layout
-
+//        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         // initialize views
         mProgBarView = (ProgressBar)findViewById(R.id.progressBar);
         mForecastHeader = (TextView)findViewById(R.id.forecastHeader);
         mEmptyList = (TextView)findViewById(R.id.emptyList);
         mListView = (ListView)findViewById(R.id.listView);
-//        mTemperatureLabel = (TextView)findViewById(R.id.temperatureLabel);
-//        mDayLabel = (TextView)findViewById(R.id.dayLabel);
-//        mWeatherDescrLabel = (TextView)findViewById(R.id.weatherDescrLabel);
-//        mIconImageView = (ImageView)findViewById(R.id.iconImageView);
 
+        if(savedInstanceState != null){
+            isBoundToService = savedInstanceState.getBoolean("isBoundToService");
+            mLatitude = savedInstanceState.getDouble("latitude");
+            mLongitude = savedInstanceState.getDouble("longitude");
+            mWeatherModel = (Weather[]) savedInstanceState.getParcelableArray("weatherModel");
+        }
 
-
-        getTheLocation(); // runs code for retrieving Location data from LocationDetector
-
+        if(mWeatherModel != null){
+            updateUI();
+        }else if(mLatitude != 0.0 && mLongitude != 0.0){
+            retrieveWeatherData();
+        }else{
+            getTheLocation(); // runs code for retrieving Location data from LocationDetector
+        }
     }
 
     // Adds menu items to the Action Bar
@@ -174,7 +170,9 @@ public class WeatherActivity extends AppCompatActivity implements WeatherDataAsy
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState){
         savedInstanceState.putBoolean("isBoundToService", isBoundToService);
-
+        savedInstanceState.putDouble("latitude", mLatitude);
+        savedInstanceState.putDouble("longitude", mLongitude);
+        savedInstanceState.putParcelableArray("weatherModel", mWeatherModel);
     }
 
     @Override
@@ -260,6 +258,7 @@ public class WeatherActivity extends AppCompatActivity implements WeatherDataAsy
 
     }
 
+    // Displays the weather data in the ListView
     private void updateUI(){
         // use--   android:id/empty   when no data to display (instead of android:id/list)
 
@@ -277,10 +276,12 @@ public class WeatherActivity extends AppCompatActivity implements WeatherDataAsy
             WeatherAdapter adapter = new WeatherAdapter(this, mWeatherModel);
             mListView.setAdapter(adapter);
         }
+    }
 
 
-
-
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
     }
 
 }
